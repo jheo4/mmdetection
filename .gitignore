@@ -121,3 +121,6 @@ work_dirs/
 *.pth
 *.py~
 *.sh~
+
+inference_exp/output/
+tutorials/
