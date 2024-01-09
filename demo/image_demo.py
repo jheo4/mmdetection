@@ -124,8 +124,11 @@ def main():
     # TODO: Video and Webcam are currently not supported and
     #  may consume too much memory if your input folder has a lot of images.
     #  We will be optimized later.
+    print(init_args)
+    print(call_args)
     inferencer = DetInferencer(**init_args)
-    inferencer(**call_args)
+    result = inferencer(**call_args)
+    print(result)
 
     if call_args['out_dir'] != '' and not (call_args['no_save_vis']
                                            and call_args['no_save_pred']):
