@@ -26,3 +26,5 @@ python demo/image_demo.py demo/demo.jpg rtmdet_tiny_8xb32-300e_coco.py --weights
 # model = init_detector(config_file, checkpoint_file, device='cpu')  # or device='cuda:0'
 # inference_detector(model, 'demo/demo.jpg')
 
+# For PyQt Error: Could not load the Qt platform plugin "xcb"
+# sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev
