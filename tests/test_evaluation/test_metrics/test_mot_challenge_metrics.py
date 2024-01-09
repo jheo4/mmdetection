@@ -108,9 +108,14 @@ class TestMOTChallengeMetric(TestCase):
         }
         for key in target:
             assert eval_results[key] - target[key] < 1e-3
+            print(f'eval_results[key] - target[key] = {round(eval_results[key] - target[key], 2)}')
 
     def test_evaluate_format_only(self):
         self.tmp_dir = tempfile.TemporaryDirectory()
         eval_results = self._test_evaluate(
             True, outfile_predix=self.tmp_dir.name)
         assert eval_results == dict()
+
+if __name__ == '__main__':
+    test = TestMOTChallengeMetric()
+    test.test_evaluate()

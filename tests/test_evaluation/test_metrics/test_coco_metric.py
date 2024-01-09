@@ -399,3 +399,14 @@ class TestCocoMetric(TestCase):
         eval_results = coco_metric.evaluate(size=1)
         self.assertDictEqual(eval_results, dict())
         self.assertTrue(osp.exists(f'{self.tmp_dir.name}/test.bbox.json'))
+
+if __name__ == '__main__':
+    test = TestCocoMetric()
+    print(f"###### setUp ######")
+    test.setUp()
+
+    print(f"###### test_evaluate ######")
+    test.test_evaluate()
+
+    print(f"###### test_evaluate_without_json ######")
+    test.test_evaluate_without_json()
