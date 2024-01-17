@@ -72,7 +72,7 @@ mock_json = {
 dump(mock_json, mock_json_file)
 
 ## create_dummy_results
-bboxes = np.array([[50, 60, 70, 80], [100, 120, 130, 150],[150, 160, 190, 200], [250, 260, 350, 360]])
+bboxes = np.array([[50, 60, 70, 70], [100, 120, 130, 150],[150, 160, 190, 200], [250, 260, 350, 360]])
 scores = np.array([1.0, 0.98, 0.96, 0.95])
 labels = np.array([0, 0, 1, 0])
 dummy_mask = np.zeros((4, 10, 10), dtype=np.uint8)
@@ -98,10 +98,10 @@ mock_predictions = dict(bboxes = torch.from_numpy(bboxes),
 
 # Test wihtout json
 # instances in a image idx(0)
-instances = [{'bbox_label': 0, 'bbox': [50, 60, 70, 80], 'ignore_flag': 0, 'mask': None},
-             {'bbox_label': 0, 'bbox': [100, 120, 130, 150], 'ignore_flag': 0, 'mask': None},
-             {'bbox_label': 1, 'bbox': [150, 160, 190, 200], 'ignore_flag': 0, 'mask': None},
-             {'bbox_label': 0, 'bbox': [250, 260, 350, 360], 'ignore_flag': 0, 'mask': None}]
+instances = [{'bbox_label': 0, 'bbox': [50, 60, 70, 80]},
+             {'bbox_label': 0, 'bbox': [100, 120, 130, 150]},
+             {'bbox_label': 1, 'bbox': [150, 160, 190, 200]},
+             {'bbox_label': 0, 'bbox': [250, 260, 350, 360]}]
 
 # categories, 0 (car) and 1 (bicycle)
 categories = ['car', 'bicycle']
