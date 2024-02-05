@@ -123,4 +123,5 @@ work_dirs/
 *.sh~
 
 inference_exp/output/
+!inference_exp/sAP/data
 tutorials/
