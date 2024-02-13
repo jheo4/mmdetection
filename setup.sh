@@ -7,7 +7,8 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 # mmdetection
 pip install openmim
 mim install mmengine
-mim install "mmcv>=2.0.0"
+mim install "mmcv>=2.0.0" # when this does not work, install mmcv from source https://mmcv.readthedocs.io/en/latest/get_started/build.html#
+
 
 pip install -v -e .
 # "-v" means verbose, or more output
