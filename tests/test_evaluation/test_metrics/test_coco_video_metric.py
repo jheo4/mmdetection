@@ -411,3 +411,17 @@ class TestCocoVideoMetric(TestCase):
             osp.isfile(osp.join(self.tmp_dir.name, 'test.segm.json')))
         self.assertTrue(
             osp.isfile(osp.join(self.tmp_dir.name, 'test.gt.json')))
+
+
+
+if __name__ == '__main__':
+    test = TestCocoVideoMetric()
+    print(f"###### setUp ######")
+    test.setUp()
+    test.test_init()
+
+    print(f"###### test_evaluate ######")
+    test.test_evaluate()
+
+    print(f"###### test_evaluate_without_json ######")
+    test.test_evaluate_without_json()
