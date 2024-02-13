@@ -1,4 +1,4 @@
-from model_context import Model_Context
+from utils.model_context import Model_Context
 
 class Model_Manager:
     # models['model_name'] = ModelContext
