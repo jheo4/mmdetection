@@ -19,8 +19,8 @@ from colorama import Fore, Style
 
 
 #  My modules
-import coco_utils
-from model_manager import Model_Manager
+import utils.coco_utils as coco_utils
+from utils.model_manager import Model_Manager
 
 # COCO BBox format: [x1, y1, w, h] left-top corner, width, height
 
