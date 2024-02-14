@@ -7,6 +7,7 @@ import numpy as np
 import pycocotools.mask as mask_util
 import cv2
 import json
+from colorama import Fore, Style
 
 # MMdetection
 import mmdet
@@ -15,14 +16,12 @@ from mmdet.evaluation import CocoMetric # for coco metric evaluation
 from mmengine.fileio import dump
 from mmdet.registry import VISUALIZERS
 
-from colorama import Fore, Style
-
-
 #  My modules
 import utils.coco_utils as coco_utils
 from utils.model_manager import Model_Manager
 from utils.coco_gt_loader import COCO_GT_Loader # COCO BBox format: [x1, y1, w, h] left-top corner, width, height
 from utils.image_loader import Image_Loader
+from utils.coco_evaluator import COCO_Evaluator
 
 
 model_manager = Model_Manager()
@@ -50,7 +49,7 @@ for model_spec in model_specs:
     print(f'\t\tmodel_cfg: {model_cfg}')
     print(f'\t\tmodel_weights: {model_weights}')
 
-    model_manager.add_model(model_case, model_cfg, model_weights, device='cuda:0')
+    model_manager.add_model(model_case, model_cfg, model_weights, device='cuda:0', evaluator=COCO_Evaluator())
 
 print(Fore.GREEN + 'LOADED MODELS' + Style.RESET_ALL)
 model_manager.print_all_models()
@@ -78,43 +77,43 @@ coco_gt_loader.print_annotation_info()
 
 ############### 4. Inference and evaluation  ###############
 print(Fore.GREEN + 'INFERENCE AND EVALUATION' + Style.RESET_ALL)
-image_index = 1
+images = 2
 
-img = image_loader.get_image(image_index)
-annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_index)
-res = []
+for image_index in range(images):
+    img = image_loader.get_image(image_index)
+    annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_index)
 
+    for model_case in model_manager.models:
+        print(f'\tmodel_case: {model_case}')
+        model_context = model_manager.get_model(model_case)
+
+        # inference
+        result = inference_detector(model_context.model, img)
+        result_to_eval = coco_utils.bbox_detection_to_eval_dict(result)
+
+        # take remove all other torch tensor elements except the first one
+        result_to_eval['bboxes'] = result_to_eval['bboxes'][:2]
+        result_to_eval['labels'] = result_to_eval['labels'][:2]
+        result_to_eval['scores'] = result_to_eval['scores'][:2]
+
+        # print shape
+        # print('\tbboxes: ', result_to_eval['bboxes'])
+        # print('\tlabels: ', result_to_eval['labels'])
+        # print('\tscores: ', result_to_eval['scores'])
+
+        # Single image evaluation
+        coco_metric = CocoMetric(ann_file=None,
+                                 metric=['bbox'],
+                                 classwise=False,
+                                 outfile_prefix=f'{tmp_dir.name}/test', )
+
+        coco_metric.dataset_meta = dict(classes=coco_gt_loader.get_category_names())
+        coco_metric.process({},
+            [dict(pred_instances=result_to_eval, img_id=0, ori_shape=(427, 640), instances=annotation_for_eval)])
+        eval_results = coco_metric.evaluate(size=1)
+        model_context.evaluator.update_mAP(eval_results)
 
 for model_case in model_manager.models:
-    print(f'\tmodel_case: {model_case}')
     model_context = model_manager.get_model(model_case)
-
-    # inference
-    result = inference_detector(model_context.model, img)
-    result_to_eval = coco_utils.bbox_detection_to_eval_dict(result)
-
-    # take remove all other torch tensor elements except the first one
-    result_to_eval['bboxes'] = result_to_eval['bboxes'][:2]
-    result_to_eval['labels'] = result_to_eval['labels'][:2]
-    result_to_eval['scores'] = result_to_eval['scores'][:2]
-
-    res.append(result_to_eval)
-
-    # print shape
-    # print('\tbboxes: ', result_to_eval['bboxes'])
-    # print('\tlabels: ', result_to_eval['labels'])
-    # print('\tscores: ', result_to_eval['scores'])
-
-    # Single image evaluation
-    coco_metric = CocoMetric(ann_file=None,
-                             metric=['bbox'],
-                             classwise=False,
-                             outfile_prefix=f'{tmp_dir.name}/test')
-
-    coco_metric.dataset_meta = dict(classes=coco_gt_loader.get_category_names())
-    coco_metric.process({},
-        [dict(pred_instances=result_to_eval, img_id=0, ori_shape=(427, 640), instances=annotation_for_eval)])
-    eval_results = coco_metric.evaluate(size=1)
-    # {'coco/bbox_mAP': 1.0, 'coco/bbox_mAP_50': 1.0, 'coco/bbox_mAP_75': 1.0, 'coco/bbox_mAP_s': -1.0, 'coco/bbox_mAP_m': 1.0, 'coco/bbox_mAP_l': 1.0}
-    print(f'eval_results: {eval_results["coco/bbox_mAP"]}')
+    model_context.evaluator.print_eval_result()
 

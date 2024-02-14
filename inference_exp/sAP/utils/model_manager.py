@@ -1,19 +1,24 @@
 from utils.model_context import Model_Context
+from utils.coco_evaluator import COCO_Evaluator
 
 class Model_Manager:
     # models['model_name'] = ModelContext
     models = {}
 
+
     def __init__(self):
         None
 
+
     # add model to model manager's list
-    def add_model(self, model_name, model_cfg, model_weight, device='cuda:0'):
-        self.models[model_name] = Model_Context(model_cfg, model_weight, device)
+    def add_model(self, model_name, model_cfg, model_weight, device='cuda:0', evaluator=COCO_Evaluator()):
+        self.models[model_name] = Model_Context(model_cfg, model_weight, device, evaluator)
+
 
     # get model from model manager's list
     def get_model(self, model_name):
         return self.models[model_name]
+
 
     # remove model from model manager's list
     def remove_model(self, model_name):
