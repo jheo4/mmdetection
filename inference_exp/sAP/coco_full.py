@@ -76,15 +76,12 @@ coco_gt_loader.load_gts(gt_json_file)
 coco_gt_loader.print_image_info()
 coco_gt_loader.print_annotation_info()
 
-annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(0)
-
-print(f'\tannotation_for_eval: {annotation_for_eval}')
-
-
 ############### 4. Inference and evaluation  ###############
 print(Fore.GREEN + 'INFERENCE AND EVALUATION' + Style.RESET_ALL)
+image_index = 1
 
-img = image_loader.get_image(0)
+img = image_loader.get_image(image_index)
+annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_index)
 res = []
 
 
@@ -104,9 +101,9 @@ for model_case in model_manager.models:
     res.append(result_to_eval)
 
     # print shape
-    print('\tbboxes: ', result_to_eval['bboxes'])
-    print('\tlabels: ', result_to_eval['labels'])
-    print('\tscores: ', result_to_eval['scores'])
+    # print('\tbboxes: ', result_to_eval['bboxes'])
+    # print('\tlabels: ', result_to_eval['labels'])
+    # print('\tscores: ', result_to_eval['scores'])
 
     # Single image evaluation
     coco_metric = CocoMetric(ann_file=None,
@@ -117,13 +114,7 @@ for model_case in model_manager.models:
     coco_metric.dataset_meta = dict(classes=coco_gt_loader.get_category_names())
     coco_metric.process({},
         [dict(pred_instances=result_to_eval, img_id=0, ori_shape=(427, 640), instances=annotation_for_eval)])
-    eval_results = coco_metric.evaluate(size=2)
-    print(f'eval_results: {eval_results}')
-
-
-# evaluation test
-# res, annotation_instances
-# coco_metric_full = CocoMetric(ann_file=None, metric=['bbox'], classwise=False, outfile_prefix=f'{tmp_dir.name}/test')
-# coco_metric_full.dataset_meta = dict(classes=category_by_name)
-# coco_metric_full.process({}, [dict(pred_instances=res, img_id=0, ori_shape=(427, 640), instances=annotation_instances[0])])
+    eval_results = coco_metric.evaluate(size=1)
+    # {'coco/bbox_mAP': 1.0, 'coco/bbox_mAP_50': 1.0, 'coco/bbox_mAP_75': 1.0, 'coco/bbox_mAP_s': -1.0, 'coco/bbox_mAP_m': 1.0, 'coco/bbox_mAP_l': 1.0}
+    print(f'eval_results: {eval_results["coco/bbox_mAP"]}')
 
