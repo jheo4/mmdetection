@@ -31,7 +31,7 @@ coco_gt_loader = COCO_GT_Loader()
 model_json_file = 'model_configs.json'
 print(Fore.YELLOW + f'model_json_file: {model_json_file}' + Style.RESET_ALL)
 
-data_json_file = 'dataset.json'
+data_json_file = 'coco_example_dataset.json'
 print(Fore.YELLOW + f'data_json_file: {data_json_file}' + Style.RESET_ALL)
 
 ############### 1. Load models ###############
@@ -60,28 +60,32 @@ print(Fore.GREEN + 'LOAD IMG DATA and GT ANNOTATIONS' + Style.RESET_ALL)
 # temp dir for intermediate results
 tmp_dir = tempfile.TemporaryDirectory()
 data_config = json.load(open(data_json_file))
-gt_dir = data_config['gt_dir']
+gt_json = data_config['gt_json']
 img_dir = data_config['img_dir']
-print(f'\tgt_dir: {gt_dir}')
+print(f'\tgt_json: {gt_json}')
 print(f'\timg_dir: {img_dir}')
 
-image_loader.load_images(img_dir)
-image_loader.print_loaded_images()
 
-
-############### 3. Load json gt annotations  ###############
-gt_json_file = gt_dir + 'annotation.json'
-coco_gt_loader.load_gts(gt_json_file)
+############### 3. Load json gt annotations & images  ###############
+coco_gt_loader.load_gts(gt_json)
 coco_gt_loader.print_image_info()
 coco_gt_loader.print_annotation_info()
+first_image_id = coco_gt_loader.get_first_image_id()
+
+image_loader.load_images(img_dir, first_image_id)
+image_loader.print_loaded_images()
 
 ############### 4. Inference and evaluation  ###############
 print(Fore.GREEN + 'INFERENCE AND EVALUATION' + Style.RESET_ALL)
 images = 2
 
 for image_index in range(images):
-    img = image_loader.get_image(image_index)
-    annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_index)
+    image_id = first_image_id + image_index
+
+    img = image_loader.get_image(image_id)
+    annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_id)
+
+    print(Fore.YELLOW + f'\tannotation_for_eval: {annotation_for_eval}' + Style.RESET_ALL)
 
     for model_case in model_manager.models:
         print(f'\tmodel_case: {model_case}')
@@ -89,11 +93,19 @@ for image_index in range(images):
 
         # inference
         result = inference_detector(model_context.model, img)
+        print(Fore.RED + f'\tresult: {result}' + Style.RESET_ALL)
         result_to_eval = coco_utils.bbox_detection_to_eval_dict(result)
 
         # take remove all other torch tensor elements except the first one
         result_to_eval['bboxes'] = result_to_eval['bboxes'][:2]
+        # if image_index == 1:
+        #     result_to_eval['bboxes'][0] = torch.tensor([200, 100, 120, 362])
+        #     result_to_eval['bboxes'][1] = torch.tensor([200, 100, 10, 31])
+
         result_to_eval['labels'] = result_to_eval['labels'][:2]
+        #for i in range(len(result_to_eval['labels'])):
+        #    result_to_eval['labels'][i] = 1
+
         result_to_eval['scores'] = result_to_eval['scores'][:2]
 
         # print shape
@@ -104,13 +116,15 @@ for image_index in range(images):
         # Single image evaluation
         coco_metric = CocoMetric(ann_file=None,
                                  metric=['bbox'],
-                                 classwise=False,
                                  outfile_prefix=f'{tmp_dir.name}/test', )
+
+        print('**************')
+        print(result_to_eval)
 
         coco_metric.dataset_meta = dict(classes=coco_gt_loader.get_category_names())
         coco_metric.process({},
-            [dict(pred_instances=result_to_eval, img_id=0, ori_shape=(427, 640), instances=annotation_for_eval)])
-        eval_results = coco_metric.evaluate(size=1)
+            [dict(pred_instances=result_to_eval, img_id=image_id, ori_shape=(227, 340), instances=annotation_for_eval)])
+        eval_results = coco_metric.evaluate(size=2)
         model_context.evaluator.update_mAP(eval_results)
 
 for model_case in model_manager.models:

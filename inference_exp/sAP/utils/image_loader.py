@@ -9,17 +9,21 @@ class Image_Loader:
     def __init__(self):
         None
 
-    def load_image_filepaths(self, image_dir):
+    def load_image_filepaths(self, image_dir, start_id=1):
         img_files = os.listdir(image_dir)
         img_files.sort()
         for index, img_file in zip(range(len(img_files)), img_files):
-            self.image_files[index] = image_dir + os.sep + img_file
+            self.image_files[start_id + index] = image_dir + os.sep + img_file
 
 
-    def load_images(self, image_dir):
-        self.load_image_filepaths(image_dir)
-        for index, img_file in self.image_files.items():
-            self.images[index] = cv2.imread(img_file)
+    def load_images(self, image_dir, start_id=1):
+        self.load_image_filepaths(image_dir, start_id)
+        for img_id, img_file in self.image_files.items():
+            # check if the image file exists
+            if not os.path.exists(img_file):
+                print(Fore.RED + "Image file not found: ", img_file + Style.RESET_ALL)
+                continue
+            self.images[img_id] = cv2.imread(img_file)
 
 
     def get_image(self, index):
@@ -35,6 +39,13 @@ class Image_Loader:
             return self.images[index]
 
         return None
+
+
+    def get_image_filepath(self, image_id):
+        if image_id not in self.image_files:
+            print(Fore.RED + "Image not found" + Style.RESET_ALL)
+            return None
+        return self.image_files[image_id]
 
 
     def print_loaded_images(self):

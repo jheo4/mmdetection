@@ -1,5 +1,6 @@
 from mmengine.logging import print_log
 import cv2
+from colorama import Fore, Style
 
 from mmdet.apis import init_detector, inference_detector
 
@@ -16,7 +17,7 @@ detector   = init_detector(model_cfg, weights, device=device)
 image_fn = project_dir + 'demo/demo.jpg'
 image_to_infer = cv2.imread(image_fn)
 # bgr to rgb
-image_to_infer = image_to_infer[:, :, ::-1]
+# image_to_infer = image_to_infer[:, :, ::-1]
 
 result = inference_detector(detector, image_to_infer)
 print("##############################################---------------##################################################")
@@ -33,15 +34,17 @@ print("##############################################---------------############
 #      - bboxes
 #      - labels
 pred_meta = result.metainfo
+print("pred_meta: ", pred_meta)
 pred_bboxes = result.get('pred_instances').get('bboxes').cpu().numpy()
 pred_scores = result.get('pred_instances').get('scores').cpu().numpy()
 pred_labels = result.get('pred_instances').get('labels').cpu().numpy()
+print(Fore.RED + f'pred_bboxes: {pred_bboxes}' + Style.RESET_ALL)
+
 gt_bboxes = result.get('gt_instances').get('bboxes').cpu().numpy()
 gt_labels = result.get('gt_instances').get('labels').cpu().numpy()
 
-print(gt_bboxes)
-print(gt_labels)
-
+print('gt_bboxes: ', gt_bboxes)
+print('gt_labels: ', gt_labels)
 
 print("##############################################---------------##################################################")
 
@@ -52,7 +55,7 @@ visualizer = VISUALIZERS.build(visualizer_cfg)
 visualizer.dataset_meta = detector.dataset_meta
 
 visualizer.add_datasample(name='result',
-                          image=image_to_infer,
+                          image=image_to_infer[:, :, ::-1],
                           data_sample=result,
                           draw_gt=False,
                           pred_score_thr=0.3,

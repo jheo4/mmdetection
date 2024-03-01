@@ -1,6 +1,6 @@
 {
   "model_dir": "/home/jin/mnt/github/mmdetection/",
   "models": [
-  {"case": "rtmdet_coco", "cfg": "configs/rtmdet/rtmdet_l_8xb32-300e_coco.py", "weight": "checkpoints/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth"}
+  {"case": "rtmdet_coco", "device": "cuda:0", "cfg": "configs/rtmdet/rtmdet_l_8xb32-300e_coco.py", "weight": "checkpoints/rtmdet_l_8xb32-300e_coco_20220719_112030-5a0be7c4.pth"}
 ]}
 

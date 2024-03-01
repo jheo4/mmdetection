@@ -20,14 +20,14 @@ class COCO_GT_Loader:
 
             # laod annotations
             for annotation in gts_json['annotations']:
-                image_index = annotation['image_id']
+                image_id = annotation['image_id']
                 category_index = annotation['category_id']
                 bbox = annotation['bbox']
 
-                if image_index not in self.annotations:
-                    self.annotations[image_index] = []
+                if image_id not in self.annotations:
+                    self.annotations[image_id] = []
 
-                self.annotations[image_index].append({
+                self.annotations[image_id].append({
                     'category': category_index,
                     'bbox': bbox
                 })
@@ -43,6 +43,7 @@ class COCO_GT_Loader:
 
         eval_annot = []
         for annotation in self.annotations[image_id]:
+            # print(annotation)
             eval_annot.append({'image_id': image_id, 'bbox_label': annotation['category'], 'bbox': annotation['bbox']})
 
         return eval_annot
@@ -53,6 +54,12 @@ class COCO_GT_Loader:
         for category_id, category_name in self.categories.items():
             category_names.append(category_name)
         return category_names
+
+
+    def get_first_image_id(self):
+        img_ids = list(self.images.keys())
+        img_ids.sort()
+        return img_ids[0]
 
 
     def print_image_info(self):
@@ -83,4 +90,5 @@ if __name__ == "__main__":
     print(annot1)
     print(annot2)
     coco_gt_loader.print_category_info()
-
+    first_img_id = coco_gt_loader.get_first_image_id()
+    print("First image id: ", first_img_id)
