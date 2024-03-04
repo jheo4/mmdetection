@@ -70,7 +70,7 @@ for image_index in range(num_of_images):
     print(f'\timage_id: {image_id}, image_file: {image_loader.get_image_filepath(image_id)}')
 
     annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_id)
-    print(f'\tannotation_for_eval: {annotation_for_eval}')
+    print(Fore.YELLOW + f'\tannotation_for_eval: {annotation_for_eval}' + Style.RESET_ALL)
 
     for model_case in model_manager.models:
         print(f'\tmodel_case: {model_case}')
@@ -78,8 +78,20 @@ for image_index in range(num_of_images):
 
         # inference
         result = inference_detector(model_context.model, img)
+        result = coco_utils.filter_result_by_score(result, 0.3) # filter prediction results by confidence score
+
+        tep_res = coco_utils.filter_result_by_categories(result, [0, 1, 2, 3, 4, 5, 6, 7, 8])
+        print(Fore.RED + f'\ttep_res: {tep_res}' + Style.RESET_ALL)
+
+        print("Result to Vis################################################")
+        print(result)
+
         result_to_eval = coco_utils.bbox_detection_to_eval_dict(result)
-        print(f'\tresult_to_eval: {result_to_eval}')
+        print(Fore.RED + f'\tresult_to_eval: {result_to_eval}' + Style.RESET_ALL)
+
+        # tensor array with zeros
+        result_to_eval['labels'] = torch.zeros((len(result_to_eval['bboxes']),), dtype=torch.int64)
+        print(Fore.RED + f'\tresult_to_eval: {result_to_eval}' + Style.RESET_ALL)
 
 
         visualizer_cfg = dict(name='visualizer',
@@ -88,8 +100,6 @@ for image_index in range(num_of_images):
         visualizer = VISUALIZERS.build(visualizer_cfg)
         visualizer.dataset_meta = model_context.model.dataset_meta
 
-        print("Result to Vis################################################33")
-        print(result)
 
         visualizer.add_datasample(name='result',
                                   image=img[:, :, ::-1],

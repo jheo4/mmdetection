@@ -81,6 +81,69 @@ def convert_gt_mot_to_coco(mot_text_path, img_dir, output_json_path, overwrite=F
         json.dump(out_coco_json, json_file, indent=4)
 
 
+def filter_refined_result_by_score(refined_result, score_threshold):
+    # result format: {'bboxes': tensor([[x1, y1, x2, y2], ...]), 'labels': tensor([label1, label2, ...]), 'scores': tensor([score1, score2, ...])}
+    bboxes = refined_result['bboxes']
+    labels = refined_result['labels']
+    scores = refined_result['scores']
+
+    mask = scores > score_threshold # mask: tensor([True, False, True, ...])
+
+    refined_result['bboxes'] = bboxes[mask]
+    refined_result['labels'] = labels[mask]
+    refined_result['scores'] = scores[mask]
+
+    return refined_result
+
+
+from mmengine.structures import InstanceData
+from mmdet.structures import DetDataSample
+def filter_result_by_score(result, score_threshold):
+    pred_instances = result.get('pred_instances')
+
+    bboxes = pred_instances.get('bboxes')
+    labels = pred_instances.get('labels')
+    scores = pred_instances.get('scores')
+    mask = scores > score_threshold # mask: tensor([True, False, True, ...])
+
+    bboxes = bboxes[mask]
+    labels = labels[mask]
+    scores = scores[mask]
+
+    filtered_instances = InstanceData()
+    filtered_instances.bboxes = bboxes
+    filtered_instances.labels = labels
+    filtered_instances.scores = scores
+
+    result.pred_instances = filtered_instances
+
+    return result
+
+
+def filter_result_by_categories(result, category_ids):
+    pred_instances = result.get('pred_instances')
+
+    bboxes = pred_instances.get('bboxes')
+    labels = pred_instances.get('labels')
+    scores = pred_instances.get('scores')
+
+    mask = torch.zeros_like(labels, dtype=torch.bool)
+    for category_id in category_ids:
+        mask = mask | (labels == category_id) # mask: tensor([True, False, True, ...])
+
+    bboxes = bboxes[mask]
+    labels = labels[mask]
+    scores = scores[mask]
+
+    filtered_instances = InstanceData()
+    filtered_instances.bboxes = bboxes
+    filtered_instances.labels = labels
+    filtered_instances.scores = scores
+
+    result.pred_instances = filtered_instances
+
+    return result
+
 
 if __name__ == "__main__":
     detection_result = {
