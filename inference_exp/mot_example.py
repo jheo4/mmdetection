@@ -28,7 +28,7 @@ image_loader = Image_Loader()
 coco_gt_loader = COCO_GT_Loader()
 
 model_json_file = 'json/model_configs.json'
-data_json_file = 'json/mot/mot17_02_dpm.json'
+data_json_file = 'json/mot/mot17_02_sdp.json'
 
 print(Fore.YELLOW + f'model_json_file: {model_json_file}' + Style.RESET_ALL)
 print(Fore.YELLOW + f'data_json_file: {data_json_file}' + Style.RESET_ALL)
