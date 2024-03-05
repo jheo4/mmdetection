@@ -70,7 +70,7 @@ for image_index in range(num_of_images):
     print(f'\timage_id: {image_id}, image_file: {image_loader.get_image_filepath(image_id)}')
 
     annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_id)
-    print(f'\tannotation_for_eval: {annotation_for_eval}')
+    print(Fore.YELLOW + f'\tannotation_for_eval: {annotation_for_eval}' + Style.RESET_ALL)
 
     for model_case in model_manager.models:
         print(f'\tmodel_case: {model_case}')
@@ -78,34 +78,43 @@ for image_index in range(num_of_images):
 
         # inference
         result = inference_detector(model_context.model, img)
+        result = coco_utils.filter_result_by_score(result, 0.3) # filter prediction results by confidence score
+
+        tep_res = coco_utils.filter_result_by_categories(result, [0, 1, 2, 3, 4, 5, 6, 7, 8])
+        print(Fore.RED + f'\ttep_res: {tep_res}' + Style.RESET_ALL)
+
+        print("Result to Vis################################################")
+        print(result)
+
         result_to_eval = coco_utils.bbox_detection_to_eval_dict(result)
-        result_to_eval['bboxes'] = result_to_eval['bboxes'][:12]
-        result_to_eval['labels'] = result_to_eval['labels'][:12]
-        result_to_eval['scores'] = result_to_eval['scores'][:12]
+        print(Fore.RED + f'\tresult_to_eval: {result_to_eval}' + Style.RESET_ALL)
 
-        # print(f'\tresult_to_eval["bboxes"][0]: {result_to_eval["bboxes"][0]}')
-
-        # list to torch tensor
-        result_to_eval['bboxes'][0] = torch.tensor([1359.1, 413.27, 120.26, 362.77])
-        result_to_eval['bboxes'][1] = torch.tensor([571.03, 402.13, 104.56, 315.68])
-        result_to_eval['bboxes'][2] = torch.tensor([650.8, 455.86, 63.98, 193.94])
-        result_to_eval['bboxes'][3] = torch.tensor([721.23, 446.86, 41.871, 127.61])
-        result_to_eval['bboxes'][4] = torch.tensor([454.06, 434.36, 97.492, 294.47])
-        result_to_eval['bboxes'][5] = torch.tensor([1254.6, 446.72, 33.822, 103.47])
-        result_to_eval['bboxes'][6] = torch.tensor([1301.1, 237.38, 195.98, 589.95])
-        result_to_eval['bboxes'][7] = torch.tensor([1480.3, 413.27, 120.26, 362.77])
-        result_to_eval['bboxes'][8] = torch.tensor([552.72, 473.9, 29.314, 89.943])
-        result_to_eval['bboxes'][9] = torch.tensor([1097.0, 433.0, 39.0, 119.0])
-        result_to_eval['bboxes'][10] = torch.tensor([543.19, 442.1, 44.948, 136.84])
-        result_to_eval['bboxes'][11] = torch.tensor([1017.0, 425.0, 39.0, 119.0])
+        # tensor array with zeros
+        result_to_eval['labels'] = torch.zeros((len(result_to_eval['bboxes']),), dtype=torch.int64)
+        print(Fore.RED + f'\tresult_to_eval: {result_to_eval}' + Style.RESET_ALL)
 
 
-        print(f'\tlen(annotation_for_eval): {len(annotation_for_eval)}')
-        print(f'\tlen(result_to_eval["bboxes"]): {len(result_to_eval["bboxes"])}')
-        print(f'\tresult_to_eval["bboxes"]: {result_to_eval["bboxes"]}')
+        visualizer_cfg = dict(name='visualizer',
+                              type='DetLocalVisualizer',
+                              vis_backends=[dict(type='LocalVisBackend'),])
+        visualizer = VISUALIZERS.build(visualizer_cfg)
+        visualizer.dataset_meta = model_context.model.dataset_meta
 
-        for i in range(len(result_to_eval['labels'])):
-            result_to_eval['labels'][i] = 0
+
+        visualizer.add_datasample(name='result',
+                                  image=img[:, :, ::-1],
+                                  data_sample=result,
+                                  draw_gt=False,
+                                  pred_score_thr=0.3,
+                                  show=True)
+        # image_with_result = visualizer.get_image()
+        # rgb to bgr
+        # image_with_result = image_with_result[:, :, ::-1]
+        # cv2.imshow('result', image_with_result)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+
 
         # Single image evaluation
         coco_metric = CocoMetric(ann_file=None,

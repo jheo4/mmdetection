@@ -30,3 +30,5 @@ python demo/image_demo.py demo/demo.jpg rtmdet_tiny_8xb32-300e_coco.py --weights
 # For PyQt Error: Could not load the Qt platform plugin "xcb"
 pip install opencv-python-headless PyQt5
 # sudo apt-get install '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libxcb-xinerama0
+
+pip install piq # for image quality metrics
