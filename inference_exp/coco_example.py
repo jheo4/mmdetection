@@ -23,19 +23,37 @@ from utils.coco_gt_loader import COCO_GT_Loader # COCO BBox format: [x1, y1, w, 
 from utils.image_loader import Image_Loader
 from utils.coco_evaluator import COCO_Evaluator
 
+
 model_manager = Model_Manager()
 image_loader = Image_Loader()
 coco_gt_loader = COCO_GT_Loader()
 
-model_json_file = 'model_configs.json'
-data_json_file = 'mot_jsons/mot17_02_dpm.json'
-
+model_json_file = 'json/model_configs.json'
 print(Fore.YELLOW + f'model_json_file: {model_json_file}' + Style.RESET_ALL)
+
+data_json_file = 'json/coco_example_dataset.json'
 print(Fore.YELLOW + f'data_json_file: {data_json_file}' + Style.RESET_ALL)
 
 ############### 1. Load models ###############
 print(Fore.GREEN + 'LOADING MODELS' + Style.RESET_ALL)
-model_manager.add_model_cases_from_json(model_json_file)
+model_configs = json.load(open(model_json_file))
+model_dir = model_configs['model_dir']
+model_specs = model_configs['models']
+print(f'\tmodel_dir: {model_dir}')
+
+for model_spec in model_specs:
+    model_case = model_spec['case']
+    model_cfg = model_dir + model_spec['cfg']
+    model_weights = model_dir + model_spec['weight']
+    print(f'\tmodel_case: {model_case}')
+    print(f'\t\tmodel_cfg: {model_cfg}')
+    print(f'\t\tmodel_weights: {model_weights}')
+
+    model_manager.add_model(model_case, model_cfg, model_weights, device='cuda:0', evaluator=COCO_Evaluator())
+
+print(Fore.GREEN + 'LOADED MODELS' + Style.RESET_ALL)
+model_manager.print_all_models()
+
 
 ############### 2. Set data paths  ###############
 print(Fore.GREEN + 'LOAD IMG DATA and GT ANNOTATIONS' + Style.RESET_ALL)
@@ -44,32 +62,29 @@ tmp_dir = tempfile.TemporaryDirectory()
 data_config = json.load(open(data_json_file))
 gt_json = data_config['gt_json']
 img_dir = data_config['img_dir']
-
 print(f'\tgt_json: {gt_json}')
 print(f'\timg_dir: {img_dir}')
 
 
 ############### 3. Load json gt annotations & images  ###############
 coco_gt_loader.load_gts(gt_json)
-first_img_id = coco_gt_loader.get_first_image_id()
-print(f'\tfirst_img_id: {first_img_id}')
-image_loader.load_images(img_dir, first_img_id)
-# image_loader.print_loaded_images()
+coco_gt_loader.print_image_info()
+coco_gt_loader.print_annotation_info()
+first_image_id = coco_gt_loader.get_first_image_id()
 
-# coco_gt_loader.print_image_info()
-# coco_gt_loader.print_annotation_info()
-# coco_gt_loader.print_category_info()
+image_loader.load_images(img_dir, first_image_id)
+image_loader.print_loaded_images()
 
 ############### 4. Inference and evaluation  ###############
 print(Fore.GREEN + 'INFERENCE AND EVALUATION' + Style.RESET_ALL)
-num_of_images = 1
+images = 2
 
-for image_index in range(num_of_images):
-    image_id = first_img_id + image_index
+for image_index in range(images):
+    image_id = first_image_id + image_index
+
     img = image_loader.get_image(image_id)
-    print(f'\timage_id: {image_id}, image_file: {image_loader.get_image_filepath(image_id)}')
-
     annotation_for_eval = coco_gt_loader.get_annotation_for_evaluation(image_id)
+
     print(Fore.YELLOW + f'\tannotation_for_eval: {annotation_for_eval}' + Style.RESET_ALL)
 
     for model_case in model_manager.models:
@@ -78,55 +93,38 @@ for image_index in range(num_of_images):
 
         # inference
         result = inference_detector(model_context.model, img)
-        result = coco_utils.filter_result_by_score(result, 0.3) # filter prediction results by confidence score
-
-        tep_res = coco_utils.filter_result_by_categories(result, [0, 1, 2, 3, 4, 5, 6, 7, 8])
-        print(Fore.RED + f'\ttep_res: {tep_res}' + Style.RESET_ALL)
-
-        print("Result to Vis################################################")
-        print(result)
-
+        print(Fore.RED + f'\tresult: {result}' + Style.RESET_ALL)
         result_to_eval = coco_utils.bbox_detection_to_eval_dict(result)
-        print(Fore.RED + f'\tresult_to_eval: {result_to_eval}' + Style.RESET_ALL)
 
-        # tensor array with zeros
-        result_to_eval['labels'] = torch.zeros((len(result_to_eval['bboxes']),), dtype=torch.int64)
-        print(Fore.RED + f'\tresult_to_eval: {result_to_eval}' + Style.RESET_ALL)
+        # take remove all other torch tensor elements except the first one
+        result_to_eval['bboxes'] = result_to_eval['bboxes'][:2]
+        # if image_index == 1:
+        #     result_to_eval['bboxes'][0] = torch.tensor([200, 100, 120, 362])
+        #     result_to_eval['bboxes'][1] = torch.tensor([200, 100, 10, 31])
 
+        result_to_eval['labels'] = result_to_eval['labels'][:2]
+        #for i in range(len(result_to_eval['labels'])):
+        #    result_to_eval['labels'][i] = 1
 
-        visualizer_cfg = dict(name='visualizer',
-                              type='DetLocalVisualizer',
-                              vis_backends=[dict(type='LocalVisBackend'),])
-        visualizer = VISUALIZERS.build(visualizer_cfg)
-        visualizer.dataset_meta = model_context.model.dataset_meta
+        result_to_eval['scores'] = result_to_eval['scores'][:2]
 
-
-        visualizer.add_datasample(name='result',
-                                  image=img[:, :, ::-1],
-                                  data_sample=result,
-                                  draw_gt=False,
-                                  pred_score_thr=0.3,
-                                  show=True)
-        # image_with_result = visualizer.get_image()
-        # rgb to bgr
-        # image_with_result = image_with_result[:, :, ::-1]
-        # cv2.imshow('result', image_with_result)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-
-
+        # print shape
+        # print('\tbboxes: ', result_to_eval['bboxes'])
+        # print('\tlabels: ', result_to_eval['labels'])
+        # print('\tscores: ', result_to_eval['scores'])
 
         # Single image evaluation
         coco_metric = CocoMetric(ann_file=None,
                                  metric=['bbox'],
-                                 classwise=False,
                                  outfile_prefix=f'{tmp_dir.name}/test', )
+
+        print('**************')
+        print(result_to_eval)
 
         coco_metric.dataset_meta = dict(classes=coco_gt_loader.get_category_names())
         coco_metric.process({},
-            [dict(pred_instances=result_to_eval, img_id=1, ori_shape=(1080, 1920), instances=annotation_for_eval)])
-        eval_results = coco_metric.evaluate(size=1)
-        print(f'\teval_results: {eval_results}')
+            [dict(pred_instances=result_to_eval, img_id=image_id, ori_shape=(227, 340), instances=annotation_for_eval)])
+        eval_results = coco_metric.evaluate(size=2)
         model_context.evaluator.update_mAP(eval_results)
 
 for model_case in model_manager.models:

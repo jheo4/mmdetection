@@ -71,8 +71,8 @@ class FrameDiffCalculator:
 
 if __name__ == "__main__":
     frame_diff_calculator = FrameDiffCalculator()
-    frame1 = cv2.imread("/home/jin/mnt/github/mmdetection/inference_exp/sAP/data/img/000003.jpg")
-    frame2 = cv2.imread("/home/jin/mnt/github/mmdetection/inference_exp/sAP/data/img/000004.jpg")
+    frame1 = cv2.imread("/home/jin/mnt/github/mmdetection/inference_exp/data/img/000003.jpg")
+    frame2 = cv2.imread("/home/jin/mnt/github/mmdetection/inference_exp/data/img/000004.jpg")
 
     frame_diff_calculator.most_recent_frame = frame1
 

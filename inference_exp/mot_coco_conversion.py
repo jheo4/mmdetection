@@ -2,7 +2,7 @@ import json
 import utils.coco_utils as coco_utils
 import os
 
-mot_json_dir = "mot_jsons"
+mot_json_dir = "json/mot"
 
 mot_jsons = os.listdir(mot_json_dir)
 print(mot_jsons)

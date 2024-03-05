@@ -66,5 +66,5 @@ class Image_Loader:
 if __name__ == "__main__":
     image_loader = Image_Loader()
     # image_loader.load_image_filepaths("/home/jin/mnt/github/mmdetection/inference_exp/sAP/data/img/")
-    image_loader.load_images("/home/jin/mnt/github/mmdetection/inference_exp/sAP/data/img/")
+    image_loader.load_images("/home/jin/mnt/github/mmdetection/inference_exp/data/img/")
 
