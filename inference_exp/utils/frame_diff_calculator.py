@@ -5,9 +5,11 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 
-class FrameDiffCalculator:
+class Frame_Diff_Calculator:
     most_recent_frame = None # cv2 frame
-    num_of_diffs = 0
+    pixel_diffs = []
+    hist_diffs = []
+    ssims = []
 
 
     def __init__(self):
@@ -25,6 +27,7 @@ class FrameDiffCalculator:
         diff = cv2.absdiff(gray_x, gray_y)
         mean_diff = numpy.mean(diff)
 
+        self.pixel_diffs.append(mean_diff)
         return mean_diff
 
 
@@ -41,6 +44,8 @@ class FrameDiffCalculator:
 
         # -1 ~ 1: 1 means perfect correlation, 0 means no correlation, -1 means perfect anti correlation
         diff = cv2.compareHist(hist_x, hist_y, cv2.HISTCMP_CORREL)
+
+        self.hist_diffs.append(diff)
         return diff
 
 
@@ -66,11 +71,12 @@ class FrameDiffCalculator:
         ssim: torch.Tensor = piq.ssim(gray_x, gray_y, data_range=255)
         ssim = ssim.item()
 
+        self.ssims.append(ssim)
         return ssim
 
 
 if __name__ == "__main__":
-    frame_diff_calculator = FrameDiffCalculator()
+    frame_diff_calculator = Frame_Diff_Calculator()
     frame1 = cv2.imread("/home/jin/mnt/github/mmdetection/inference_exp/data/img/000003.jpg")
     frame2 = cv2.imread("/home/jin/mnt/github/mmdetection/inference_exp/data/img/000004.jpg")
 

@@ -20,13 +20,6 @@ def bbox_detection_to_eval_dict(detection_result):
     return eval_dict
 
 
-def jump_data_index_by_execution_time(data_index, data_rate, exec_time_ms):
-    timeslot = 1000 / data_rate
-    jump = int(exec_time_ms / timeslot) + 1
-    # print(f"Jumping from {data_index} to {data_index + jump}")
-    return data_index + jump
-
-
 def convert_gt_mot_to_coco(mot_text_path, img_dir, output_json_path, overwrite=False):
     # check if the output_json_path exists
     if os.path.exists(output_json_path) and not overwrite:
@@ -155,5 +148,4 @@ if __name__ == "__main__":
     }
     print(bbox_detection_to_dict(detection_result))
     print(bbox_detection_to_eval_dict(detection_result))
-    print(jump_data_index_by_execution_time(0, 30, 130))
 

@@ -1,0 +1,5 @@
+{
+  "gt_file": "/home/jin/mnt/Data/MOT17/train/MOT17-09-FRCNN/det/det.txt",
+  "gt_json": "/home/jin/mnt/Data/MOT17/train/MOT17-09-FRCNN/det/det.json",
+  "img_dir": "/home/jin/mnt/Data/MOT17/train/MOT17-09-FRCNN/img1/"
+}
