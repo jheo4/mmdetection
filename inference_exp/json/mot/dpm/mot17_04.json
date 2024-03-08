@@ -1,5 +1,5 @@
 {
-  "gt_file": "/home/jin/mnt/Data/MOT17/train/MOT17-04-DPM/det/det.txt",
-  "gt_json": "/home/jin/mnt/Data/MOT17/train/MOT17-04-DPM/det/det.json",
+  "gt_file": "/home/jin/mnt/Data/MOT17/train/MOT17-04-DPM/gt/gt.txt",
+  "gt_json": "/home/jin/mnt/Data/MOT17/train/MOT17-04-DPM/gt/gt.json",
   "img_dir": "/home/jin/mnt/Data/MOT17/train/MOT17-04-DPM/img1/"
 }

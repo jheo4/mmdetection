@@ -38,7 +38,7 @@ model_manager.add_model_cases_from_json(model_json_file)
 mot_json_dir = "json/mot"
 # detectors = ["dpm", "frcnn", "sdp"]
 detectors = ["dpm"]
-vid_ids = ["13", "04"]
+vid_ids = ["10", "04"]
 mot_json_files = []
 for detector in detectors:
     for vid_id in vid_ids:
@@ -49,7 +49,7 @@ for detector in detectors:
 data_interval = 33 # 33 ms = 30 fps
 emulated_inference_intervals = [33 * i for i in range(10)] # 33ms, 66ms, 99ms, 132ms, 165ms, 198ms, 231ms, 264ms, 297ms
 evaluators_for_diff_intervals = [COCO_Evaluator() for _ in range(len(emulated_inference_intervals))]
-num_of_images = 100
+num_of_images = 50
 conf_thr = 0.3
 
 

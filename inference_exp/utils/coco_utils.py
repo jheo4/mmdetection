@@ -48,7 +48,34 @@ def convert_gt_mot_to_coco(mot_text_path, img_dir, output_json_path, overwrite=F
         lines = file.readlines()
 
     for line in lines:
+        '''
+        https://arxiv.org/pdf/2010.07548.pdf page 29
+        0: frame number
+        1: identity number
+        2: left
+        3: top
+        4: width
+        5: height
+        6: confidence score
+        7: class
+            1: pedestrian
+            2: person on vehicle
+            3: car
+            4: bicycle
+            5: motorbike
+            6: non motorized vehicle
+            7: static person
+            8: distractor
+            9: occluder
+            10: occluder on the ground
+            11: occluder full
+            12: reflection
+        8: visibility ratio
+        '''
         parts = line.split(',')
+        if float(parts[8]) < 0.5 or int(parts[7]) > 10:
+            continue
+
         # Extract attributes
         frame = int(parts[0])
         id = int(parts[1])
